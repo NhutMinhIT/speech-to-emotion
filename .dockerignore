@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pytest_cache/
+
+# Venv
+.venv/
+env/
+venv/
+
+# Node / Frontend
+node_modules/
+build/
+dist/
+
+# Misc
+.DS_Store
+.git/
+.gitignore
+
+# Outputs
+results/
+notebooks/.ipynb_checkpoints/
