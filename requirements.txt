@@ -18,6 +18,7 @@ streamlit-audiorecorder
 # api requirements
 fastapi
 uvicorn[standard]
-pydub
+joblib
 soundfile
+pydub
 python-multipart
