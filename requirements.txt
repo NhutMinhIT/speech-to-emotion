@@ -14,3 +14,10 @@ jupyterlab
 # For Front-End App
 streamlit
 streamlit-audiorecorder
+
+# api requirements
+fastapi
+uvicorn[standard]
+pydub
+soundfile
+python-multipart
