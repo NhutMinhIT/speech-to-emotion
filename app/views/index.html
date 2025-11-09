@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nhận dạng Cảm xúc</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // UI-only theming (không đổi logic)
+    tailwind.config = {
+      theme: {
+        extend: {
+          animation: {
+            'gradient-x': 'gradient-x 12s ease infinite',
+            'fade-in': 'fade-in .35s ease both',
+            'float': 'float 6s ease-in-out infinite',
+          },
+          keyframes: {
+            'gradient-x': {
+              '0%,100%': { 'background-position': '0% 50%' },
+              '50%': { 'background-position': '100% 50%' },
+            },
+            'fade-in': {
+              '0%': { opacity: 0, transform: 'translateY(6px)' },
+              '100%': { opacity: 1, transform: 'translateY(0)' },
+            },
+            float: {
+              '0%,100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            },
+          },
+          boxShadow: {
+            glow: '0 10px 40px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.16)',
+            neon: '0 8px 30px rgba(99,102,241,.35), 0 0 0 1px rgba(255,255,255,.07)'
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    /* Chỉ làm đẹp, GIỮ NGUYÊN ID & markup cũ */
+    .glass{backdrop-filter:blur(16px);background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.18)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;border-radius:1rem;font-weight:700;transition:all .2s;outline:0}
+    .btn:focus{box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+    .btn-primary{color:#fff;background:linear-gradient(90deg,#10b981,#14b8a6,#06b6d4);background-size:220% 100%}
+    .btn-primary:hover{filter:brightness(1.05)}
+    .btn-secondary{color:#111827;background:#e5e7eb}
+    .tab-btn{padding:.5rem 1rem;border-radius:1rem;background:rgba(255,255,255,.14);color:#fff;font-weight:600;box-shadow:0 1px 0 rgba(255,255,255,.2) inset;transition:all .2s;border:1px solid rgba(255,255,255,.25)}
+    .tab-btn:hover{background:rgba(255,255,255,.22)}
+    .tab-btn.active{background:#fff;color:#111827;border-color:#e5e7eb;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+    .hint{color:rgba(255,255,255,.85)}
+    .dash{border:1px dashed #e5e7eb;border-radius:1rem}
+    .badge{font-size:.75rem;padding:.25rem .5rem;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2)}
+    .eq-bar{width:6px;height:36px;background:linear-gradient(180deg,#fff,rgba(255,255,255,.45));border-radius:999px;transform-origin:50% 100%;animation:eq 1.2s ease-in-out infinite}
+    .eq-bar:nth-child(2){animation-delay:.12s}.eq-bar:nth-child(3){animation-delay:.24s}.eq-bar:nth-child(4){animation-delay:.36s}.eq-bar:nth-child(5){animation-delay:.48s}
+    @keyframes eq{0%,100%{transform:scaleY(.6)}50%{transform:scaleY(1)}}
+  </style>
+</head>
+<body class="min-h-screen text-white bg-[length:200%_200%] bg-gradient-to-br from-indigo-900 via-fuchsia-800 to-rose-800 animate-gradient-x">
+  <!-- LỚP NỀN TRANG TRÍ -->
+  <div aria-hidden class="fixed inset-0 -z-10 pointer-events-none select-none">
+    <div class="absolute -top-20 -left-24 w-[520px] h-[520px] rounded-full bg-fuchsia-500/25 blur-3xl animate-float"></div>
+    <div class="absolute -bottom-24 -right-10 w-[560px] h-[560px] rounded-full bg-cyan-400/25 blur-3xl animate-float" style="animation-delay:.8s"></div>
+    <div class="absolute inset-0 [background:radial-gradient(circle_at_1px_1px,rgba(255,255,255,.07)_1px,transparent_0)] [background-size:22px_22px] opacity-40"></div>
+  </div>
+
+  <div class="max-w-6xl mx-auto p-6">
+    <div class="glass rounded-3xl shadow-neon">
+      <div class="p-6 sm:p-8">
+        <!-- HEADER -->
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold drop-shadow-md">🎤 Ứng dụng Nhận dạng Cảm xúc Giọng nói</h1>
+          </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="mt-6 flex flex-wrap gap-2">
+          <button class="tab-btn active" data-target="#panel-upload">📁 Tải file lên</button>
+          <button class="tab-btn" data-target="#panel-record">🎙️ Thu âm trực tiếp</button>
+        </div>
+
+        <!-- PANEL: UPLOAD -->
+        <div id="panel-upload" class="panel animate-fade-in mt-6 grid gap-4">
+          <div class="rounded-2xl bg-white p-5 shadow-lg text-gray-900">
+            <div class="flex items-center justify-between">
+              <label class="block font-semibold">Chọn file âm thanh</label>
+              <span class="text-xs text-gray-500">WAV · MP3 · M4A · WEBM…</span>
+            </div>
+            <div class="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <input id="audioFile" type="file" accept="audio/*"
+                     class="block w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-indigo-600 file:to-fuchsia-500 file:text-white hover:file:opacity-90"/>
+              <button id="btnUpload" class="btn btn-primary px-4 py-2 shadow disabled:opacity-50" disabled>Phân tích</button>
+            </div>
+            <div id="uploadAudioPreview" class="mt-5 dash p-4 text-gray-500 text-sm">Xem trước âm thanh…</div>
+            <div id="uploadResult" class="mt-3 text-gray-800"></div>
+          </div>
+        </div>
+
+        <!-- PANEL: RECORD -->
+        <div id="panel-record" class="panel hidden animate-fade-in mt-6 grid gap-4">
+          <div class="rounded-2xl bg-white p-5 shadow-lg text-gray-900">
+            <p class="text-gray-600">Trình duyệt ghi âm bằng <b>MediaRecorder</b> (thường .webm). Backend sẽ chuyển sang WAV (cần ffmpeg).</p>
+            <div class="mt-4 flex items-center gap-3">
+              <button id="btnStart" class="btn btn-primary px-4 py-2">Bắt đầu ghi ⏺️</button>
+              <button id="btnStop" class="btn btn-secondary px-4 py-2 disabled:opacity-50" disabled>Dừng ⏹️</button>
+            </div>
+            <div id="recordPreview" class="mt-5 dash p-4 text-sm text-gray-600">Xem trước bản ghi…</div>
+            <div id="recordResult" class="mt-3 text-gray-800"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- GIỮ NGUYÊN FILE JS CỦA BẠN -->
+  <script src="/views/javascript/index.js"></script>
+
+  <!-- JS nhẹ để chuyển tab (không đổi logic xử lý của bạn) -->
+  <script>
+    $(function(){
+      $('.tab-btn').on('click', function(){
+        $('.tab-btn').removeClass('active');
+        $(this).addClass('active');
+        const target = $(this).data('target');
+        $('.panel').addClass('hidden');
+        $(target).removeClass('hidden');
+      });
+    });
+  </script>
+</body>
+</html>
