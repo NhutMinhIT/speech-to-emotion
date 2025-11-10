@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from ..services.audio_service import load_audio_to_wav
 from ..services.feature_service import extract_features_scaled
 from ..models.model_loader import get_model_bundle
+from ..enum.Emotion import Emotion
 
 
 def predict_emotion(file_bytes: bytes, filename: str | None = None):
@@ -24,5 +25,9 @@ def predict_emotion(file_bytes: bytes, filename: str | None = None):
     pred_enc = model.predict(X)[0]
     label = encoder.inverse_transform([pred_enc])[0]
     label_str = str(label).replace("np.str_('", "").replace("')", "")
+    try:
+        display_label = Emotion[label_str].value
+    except KeyError:
+        display_label = label_str
 
-    return {"label": label_str, "sample_rate": sr}
+    return {"label": display_label, "sample_rate": sr}
