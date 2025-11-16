@@ -110,6 +110,12 @@ Nếu bạn muốn tự mình chạy lại toàn bộ quy trình:
     * **(Kiểm tra Lọc)** `notebooks/05_filtering.ipynb`: Chạy để xác nhận yêu cầu lọc Bandpass.
 
 ---
+### 3. Cách chạy ứng dụng:
+Khởi chạy ứng dụng với docker:
+`docker compose -f docker-compose.yml up --build -d`
+
+Nếu có lỗi về ffmpeg thì chạy lệnh này:
+`brew install ffmpeg`
 
 ## 📂 Cấu trúc Thư mục
 ```
